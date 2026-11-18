@@ -1,0 +1,48 @@
+{
+  "name": "ricswallet",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "RicsWallet — Phase 1 USDT Deposit System on BNB Smart Chain (BEP-20)",
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "scripts": {
+    "dev": "node --no-warnings=ExperimentalWarning --import tsx src/server/index.ts",
+    "build": "vite build && tsc -p tsconfig.server.json",
+    "start": "NODE_ENV=production node --no-warnings=ExperimentalWarning dist/server/index.js",
+    "generate-xpub": "node --import tsx scripts/generateCustodyXpub.ts",
+    "test": "NODE_OPTIONS='--no-warnings=ExperimentalWarning' vitest run",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.server.json --noEmit"
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "^4.0.9",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/cookie-parser": "^1.4.8",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.10.2",
+    "@types/pg": "^8.11.11",
+    "@types/qrcode": "^1.5.5",
+    "@types/react": "^19.0.2",
+    "@types/react-dom": "^19.0.2",
+    "@vitejs/plugin-react": "^4.3.4",
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.7",
+    "ethers": "^6.13.4",
+    "express": "^4.21.2",
+    "lucide-react": "^0.468.0",
+    "pg": "^8.13.3",
+    "qrcode": "^1.5.4",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tailwindcss": "^4.0.9",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.7"
+  },
+  "devDependencies": {
+    "@types/supertest": "^6.0.2",
+    "supertest": "^7.0.0",
+    "vitest": "^2.1.8"
+  }
+}
