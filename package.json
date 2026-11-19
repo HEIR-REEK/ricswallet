@@ -8,9 +8,10 @@
     "node": ">=22.5.0"
   },
   "scripts": {
+    "postinstall": "node scripts/build.mjs",
     "dev": "node --no-warnings=ExperimentalWarning --import tsx src/server/index.ts",
-    "build": "vite build && tsc -p tsconfig.server.json",
-    "start": "NODE_ENV=production node --no-warnings=ExperimentalWarning dist/server/index.js",
+    "build": "node scripts/build.mjs --force",
+    "start": "NODE_ENV=production node --no-warnings=ExperimentalWarning scripts/startProd.mjs",
     "generate-xpub": "node --import tsx scripts/generateCustodyXpub.ts",
     "test": "NODE_OPTIONS='--no-warnings=ExperimentalWarning' vitest run",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.server.json --noEmit"
