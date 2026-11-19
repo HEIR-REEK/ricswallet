@@ -45,24 +45,28 @@ export interface AppConfig {
 export const DEFAULT_DEV_XPUB =
   'xpub6DwYar1AAnijpsBkYhGTxyGBbTwXtLmuLQpcXvJxtnzPFApm8K1AsVrZxgqg3HyjmP9bbcvEzEvtBAn9y6jBT1sX3fXSHgeafcu3ZomQ866';
 
+function nonEmptyEnv(name: string): string | undefined {
+  const val = process.env[name]?.trim();
+  return val ? val : undefined;
+}
+
 export function loadConfig(overrides: Partial<AppConfig> = {}): AppConfig {
-  const nodeEnv = overrides.nodeEnv ?? process.env.NODE_ENV ?? 'development';
-  const minDepositUsdt = overrides.minDepositUsdt ?? process.env.MIN_DEPOSIT_USDT ?? '3';
-  const usdtDecimals = overrides.usdtDecimals ?? Number(process.env.USDT_DECIMALS ?? USDT_DECIMALS);
+  const nodeEnv = overrides.nodeEnv ?? nonEmptyEnv('NODE_ENV') ?? 'development';
+  const minDepositUsdt = overrides.minDepositUsdt ?? nonEmptyEnv('MIN_DEPOSIT_USDT') ?? '3';
+  const usdtDecimals =
+    overrides.usdtDecimals ?? Number(nonEmptyEnv('USDT_DECIMALS') ?? USDT_DECIMALS);
 
   const bscRpcUrl =
-    overrides.bscRpcUrl !== undefined
-      ? overrides.bscRpcUrl
-      : process.env.BSC_RPC_URL?.trim() || null;
+    overrides.bscRpcUrl !== undefined ? overrides.bscRpcUrl : nonEmptyEnv('BSC_RPC_URL') ?? null;
 
   const databaseUrl =
     overrides.databaseUrl !== undefined
       ? overrides.databaseUrl
-      : process.env.DATABASE_URL?.trim() || null;
+      : nonEmptyEnv('DATABASE_URL') ?? null;
 
   const depositWalletXpub = (
-    overrides.depositWalletXpub ??
-    process.env.DEPOSIT_WALLET_XPUB?.trim() ??
+    overrides.depositWalletXpub ||
+    nonEmptyEnv('DEPOSIT_WALLET_XPUB') ||
     DEFAULT_DEV_XPUB
   ).trim();
 
@@ -75,67 +79,73 @@ export function loadConfig(overrides: Partial<AppConfig> = {}): AppConfig {
   const simulatorEnabled =
     overrides.simulatorEnabled !== undefined
       ? overrides.simulatorEnabled
-      : process.env.ENABLE_SIMULATOR !== undefined
-        ? process.env.ENABLE_SIMULATOR === 'true'
+      : nonEmptyEnv('ENABLE_SIMULATOR') !== undefined
+        ? nonEmptyEnv('ENABLE_SIMULATOR') === 'true'
         : isDevSandbox;
 
   const demoAuthEnabled =
     overrides.demoAuthEnabled !== undefined
       ? overrides.demoAuthEnabled
-      : process.env.ENABLE_DEMO_AUTH !== undefined
-        ? process.env.ENABLE_DEMO_AUTH === 'true'
+      : nonEmptyEnv('ENABLE_DEMO_AUTH') !== undefined
+        ? nonEmptyEnv('ENABLE_DEMO_AUTH') === 'true'
         : isDevSandbox;
 
   return {
-    port: overrides.port ?? Number(process.env.PORT ?? 3000),
+    port: overrides.port ?? Number(nonEmptyEnv('PORT') ?? 3000),
     nodeEnv,
     databaseUrl,
     sqliteDbPath:
       overrides.sqliteDbPath ??
-      process.env.SQLITE_DB_PATH ??
+      nonEmptyEnv('SQLITE_DB_PATH') ??
       path.resolve(process.cwd(), 'data', 'ricswallet.db'),
     sessionSecret:
       overrides.sessionSecret ??
-      process.env.SESSION_SECRET ??
+      nonEmptyEnv('SESSION_SECRET') ??
       'ricswallet-dev-session-secret-do-not-use-in-prod',
     asset: SUPPORTED_ASSET,
-    networkKey: overrides.networkKey ?? process.env.BSC_NETWORK_KEY ?? BSC_NETWORK_KEY,
-    networkLabel: overrides.networkLabel ?? process.env.BSC_NETWORK_NAME ?? BSC_NETWORK_LABEL,
-    chainId: overrides.chainId ?? Number(process.env.BSC_CHAIN_ID ?? BSC_CHAIN_ID),
-    explorerUrl: (overrides.explorerUrl ?? process.env.BSC_EXPLORER_URL ?? 'https://bscscan.com').replace(
-      /\/+$/,
-      ''
-    ),
+    networkKey: overrides.networkKey ?? nonEmptyEnv('BSC_NETWORK_KEY') ?? BSC_NETWORK_KEY,
+    networkLabel: overrides.networkLabel ?? nonEmptyEnv('BSC_NETWORK_NAME') ?? BSC_NETWORK_LABEL,
+    chainId: overrides.chainId ?? Number(nonEmptyEnv('BSC_CHAIN_ID') ?? BSC_CHAIN_ID),
+    explorerUrl: (
+      overrides.explorerUrl ??
+      nonEmptyEnv('BSC_EXPLORER_URL') ??
+      'https://bscscan.com'
+    ).replace(/\/+$/, ''),
     usdtTokenContract:
-      overrides.usdtTokenContract ?? process.env.USDT_TOKEN_CONTRACT ?? OFFICIAL_BSC_USDT_CONTRACT,
+      overrides.usdtTokenContract ??
+      nonEmptyEnv('USDT_TOKEN_CONTRACT') ??
+      OFFICIAL_BSC_USDT_CONTRACT,
     usdtDecimals,
     bscRpcUrl,
     rpcPollIntervalMs:
-      overrides.rpcPollIntervalMs ?? Number(process.env.RPC_POLL_INTERVAL_MS ?? 5000),
+      overrides.rpcPollIntervalMs ?? Number(nonEmptyEnv('RPC_POLL_INTERVAL_MS') ?? 5000),
     rpcLogBatchBlocks:
-      overrides.rpcLogBatchBlocks ?? Number(process.env.RPC_LOG_BATCH_BLOCKS ?? 100),
+      overrides.rpcLogBatchBlocks ?? Number(nonEmptyEnv('RPC_LOG_BATCH_BLOCKS') ?? 100),
     webhookHmacSecret:
       overrides.webhookHmacSecret ??
-      process.env.WEBHOOK_HMAC_SECRET ??
+      nonEmptyEnv('WEBHOOK_HMAC_SECRET') ??
       'whsec_ricswallet_dev_hmac_secret',
     depositWalletXpub,
     isDefaultDemoXpub,
     simulatorEnabled,
     demoAuthEnabled,
-    adminEmail:
-      overrides.adminEmail ?? process.env.ADMIN_EMAIL?.trim().toLowerCase() ?? 'ric@ricswallet.io',
+    adminEmail: (
+      overrides.adminEmail ??
+      nonEmptyEnv('ADMIN_EMAIL') ??
+      'ric@ricswallet.io'
+    ).toLowerCase(),
     adminInitialPassword:
       overrides.adminInitialPassword !== undefined
         ? overrides.adminInitialPassword
-        : process.env.ADMIN_INITIAL_PASSWORD?.trim() || null,
+        : nonEmptyEnv('ADMIN_INITIAL_PASSWORD') ?? null,
     minDepositUsdt,
     minDepositRaw: overrides.minDepositRaw ?? parseTokenAmountToRaw(minDepositUsdt, usdtDecimals),
     requiredConfirmations:
-      overrides.requiredConfirmations ?? Number(process.env.REQUIRED_CONFIRMATIONS ?? 15),
+      overrides.requiredConfirmations ?? Number(nonEmptyEnv('REQUIRED_CONFIRMATIONS') ?? 15),
     invoiceExpiryMinutes:
-      overrides.invoiceExpiryMinutes ?? Number(process.env.INVOICE_EXPIRY_MINUTES ?? 60),
+      overrides.invoiceExpiryMinutes ?? Number(nonEmptyEnv('INVOICE_EXPIRY_MINUTES') ?? 60),
     lateDepositPolicy:
       overrides.lateDepositPolicy ??
-      (process.env.LATE_DEPOSIT_POLICY === 'auto_credit' ? 'auto_credit' : 'review'),
+      (nonEmptyEnv('LATE_DEPOSIT_POLICY') === 'auto_credit' ? 'auto_credit' : 'review'),
   };
 }

@@ -177,23 +177,50 @@ function convertPlaceholdersToPg(sql: string): string {
 
 class PostgresAppDatabase implements AppDatabase {
   public readonly dialect = 'postgres' as const;
-  private readonly pool: pg.Pool;
+  private pool: pg.Pool;
+  private readonly databaseUrl: string;
   private readonly txStorage = new AsyncLocalStorage<{ client: pg.PoolClient; depth: number }>();
 
   constructor(databaseUrl: string) {
-    const isLocal =
+    this.databaseUrl = databaseUrl;
+    const isLocalOrInternal =
       databaseUrl.includes('localhost') ||
       databaseUrl.includes('127.0.0.1') ||
       databaseUrl.includes('sslmode=disable');
 
     this.pool = new pg.Pool({
       connectionString: databaseUrl,
-      ssl: isLocal ? undefined : { rejectUnauthorized: false },
+      ssl: isLocalOrInternal ? undefined : { rejectUnauthorized: false },
       max: 10,
     });
   }
 
   async migrate(): Promise<void> {
+    try {
+      await this.pool.query('SELECT 1');
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      // Render Internal Postgres URLs sometimes do not support SSL, whereas External URLs require SSL.
+      // Auto-negotiate cleanly so both Internal and External DATABASE_URL strings work out of the box!
+      if (/does not support SSL/i.test(msg)) {
+        await this.pool.end().catch(() => {});
+        this.pool = new pg.Pool({
+          connectionString: this.databaseUrl,
+          ssl: false,
+          max: 10,
+        });
+      } else if (/SSL|pg_hba\.conf/i.test(msg)) {
+        await this.pool.end().catch(() => {});
+        this.pool = new pg.Pool({
+          connectionString: this.databaseUrl,
+          ssl: { rejectUnauthorized: false },
+          max: 10,
+        });
+      } else {
+        throw err;
+      }
+    }
+
     for (const stmt of SHARED_SCHEMA_STATEMENTS) {
       await this.pool.query(stmt);
     }
